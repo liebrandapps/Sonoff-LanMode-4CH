@@ -24,16 +24,23 @@ class SonOffControl:
             'userAgent': 'app'
         })
 
-    def updateMessage(self, outlet, state):
-        return json.dumps({
+    def updateMessage(self, state, outlet=None):
+        dct = {
             'action' : 'update',
             'device' : self.deviceId,
             'apiKey': self.apikey,
             'selfApikey': 'nonce',
-            'params' : {'switches': [ {'switch' : state, 'outlet': outlet } ] },
             'sequence': str(time.time()).replace('.',''),
             'userAgent': 'app'
-        })
+        }
+        if outlet is None:
+            dct['params']= { 'switch' : state }
+        else:
+            s = []
+            for o in outlet:
+                s.append({ 'switch' : state, 'outlet': o })
+            dct['params'] =  {'switches': s}
+        return json.dumps(dct)
 
     def receiver(self):
         print("Starting Receiver")
@@ -69,7 +76,7 @@ if __name__ == '__main__':
     print ("Sent: " + dta)
     time.sleep(2)
 
-    dta = o.updateMessage(0, 'on')
+    dta = o.updateMessage('on', outlet=[0,])
     ws.send(dta)
     print ("Sent: " + dta)
     time.sleep(1)
@@ -77,7 +84,7 @@ if __name__ == '__main__':
     ws.send(dta)
     time.sleep(4)
 
-    dta = o.updateMessage(0, 'off')
+    dta = o.updateMessage('off', outlet=[0,])
     ws.send(dta)
     print ("Sent: " + dta)
     time.sleep(1)
